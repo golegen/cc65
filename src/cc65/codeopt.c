@@ -814,6 +814,8 @@ static OptFunc DOptPtrLoad14    = { OptPtrLoad14,    "OptPtrLoad14",    108, 0, 
 static OptFunc DOptPtrLoad15    = { OptPtrLoad15,    "OptPtrLoad15",     86, 0, 0, 0, 0, 0 };
 static OptFunc DOptPtrLoad16    = { OptPtrLoad16,    "OptPtrLoad16",    100, 0, 0, 0, 0, 0 };
 static OptFunc DOptPtrLoad17    = { OptPtrLoad17,    "OptPtrLoad17",    190, 0, 0, 0, 0, 0 };
+static OptFunc DOptPtrLoad18    = { OptPtrLoad18,    "OptPtrLoad18",    100, 0, 0, 0, 0, 0 };
+static OptFunc DOptPtrLoad19    = { OptPtrLoad19,    "OptPtrLoad19",     65, 0, 0, 0, 0, 0 };
 static OptFunc DOptPtrStore1    = { OptPtrStore1,    "OptPtrStore1",     65, 0, 0, 0, 0, 0 };
 static OptFunc DOptPtrStore2    = { OptPtrStore2,    "OptPtrStore2",     65, 0, 0, 0, 0, 0 };
 static OptFunc DOptPtrStore3    = { OptPtrStore3,    "OptPtrStore3",    100, 0, 0, 0, 0, 0 };
@@ -905,6 +907,8 @@ static OptFunc* OptFuncs[] = {
     &DOptPtrLoad15,
     &DOptPtrLoad16,
     &DOptPtrLoad17,
+    &DOptPtrLoad18,
+    &DOptPtrLoad19,
     &DOptPtrLoad2,
     &DOptPtrLoad3,
     &DOptPtrLoad4,
@@ -981,7 +985,7 @@ static OptFunc* GetOptFunc (const char* Name)
     OptFunc* F = FindOptFunc (Name);
     if (F == 0) {
         /* Not found */
-        AbEnd ("Optimization step `%s' not found", Name);
+        AbEnd ("Optimization step '%s' not found", Name);
     }
     return F;
 }
@@ -1168,10 +1172,10 @@ static void WriteDebugOutput (CodeSeg* S, const char* Step)
         /* Output a header line */
         if (Step == 0) {
             /* Initial output */
-            WriteOutput ("Initial code for function `%s':\n",
+            WriteOutput ("Initial code for function '%s':\n",
                          S->Func? S->Func->Name : "<global>");
         } else {
-            WriteOutput ("Code after applying `%s':\n", Step);
+            WriteOutput ("Code after applying '%s':\n", Step);
         }
 
         /* Output the code segment */
@@ -1245,6 +1249,8 @@ static unsigned RunOptGroup1 (CodeSeg* S)
     Changes += RunOptFunc (S, &DOptPtrLoad4, 1);
     Changes += RunOptFunc (S, &DOptPtrLoad5, 1);
     Changes += RunOptFunc (S, &DOptPtrLoad6, 1);
+    Changes += RunOptFunc (S, &DOptPtrLoad18, 1); /* Before OptPtrLoad7 */
+    Changes += RunOptFunc (S, &DOptPtrLoad19, 1); /* Before OptPtrLoad7 */
     Changes += RunOptFunc (S, &DOptPtrLoad7, 1);
     Changes += RunOptFunc (S, &DOptPtrLoad11, 1);
     Changes += RunOptFunc (S, &DOptPtrLoad12, 1);
@@ -1512,7 +1518,7 @@ void RunOpt (CodeSeg* S)
 
     /* Print the name of the function we are working on */
     if (S->Func) {
-        Print (stdout, 1, "Running optimizer for function `%s'\n", S->Func->Name);
+        Print (stdout, 1, "Running optimizer for function '%s'\n", S->Func->Name);
     } else {
         Print (stdout, 1, "Running optimizer for global code segment\n");
     }

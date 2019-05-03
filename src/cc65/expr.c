@@ -696,6 +696,23 @@ static void Primary (ExprDesc* E)
 
     switch (CurTok.Tok) {
 
+        case TOK_BOOL_AND:
+            /* A computed goto label address */
+            if (IS_Get (&Standard) >= STD_CC65) {
+                SymEntry* Entry;
+                NextToken ();
+                Entry = AddLabelSym (CurTok.Ident, SC_REF | SC_GOTO_IND);
+                /* output its label */
+                E->Flags = E_RTYPE_RVAL | E_LOC_STATIC;
+                E->Name = Entry->V.L.Label;
+                E->Type = PointerTo (type_void);
+                NextToken ();
+            } else {
+                Error ("Computed gotos are a C extension, not supported with this --standard");
+                ED_MakeConstAbsInt (E, 1);
+            }
+            break;
+
         case TOK_IDENT:
             /* Identifier. Get a pointer to the symbol table entry */
             Sym = E->Sym = FindSym (CurTok.Ident);
@@ -791,9 +808,9 @@ static void Primary (ExprDesc* E)
                     ** list and returning int.
                     */
                     if (IS_Get (&Standard) >= STD_C99) {
-                        Error ("Call to undefined function `%s'", Ident);
+                        Error ("Call to undefined function '%s'", Ident);
                     } else {
-                        Warning ("Call to undefined function `%s'", Ident);
+                        Warning ("Call to undefined function '%s'", Ident);
                     }
                     Sym = AddGlobalSym (Ident, GetImplicitFuncType(), SC_EXTERN | SC_REF | SC_FUNC);
                     E->Type  = Sym->Type;
@@ -804,7 +821,7 @@ static void Primary (ExprDesc* E)
                     Sym = AddLocalSym (Ident, type_int, SC_AUTO | SC_REF, 0);
                     E->Flags = E_LOC_STACK | E_RTYPE_LVAL;
                     E->Type = type_int;
-                    Error ("Undefined symbol: `%s'", Ident);
+                    Error ("Undefined symbol: '%s'", Ident);
                 }
 
             }
@@ -1174,7 +1191,7 @@ static void StructRef (ExprDesc* Expr)
     NextToken ();
     Field = FindStructField (Expr->Type, Ident);
     if (Field == 0) {
-        Error ("Struct/union has no field named `%s'", Ident);
+        Error ("Struct/union has no field named '%s'", Ident);
         /* Make the expression an integer at address zero */
         ED_MakeConstAbs (Expr, 0, type_int);
         return;
@@ -2485,7 +2502,7 @@ static void parseadd (ExprDesc* Expr)
                 typeadjust (Expr, &Expr2, 1);
             } else {
                 /* OOPS */
-                Error ("Invalid operands for binary operator `+'");
+                Error ("Invalid operands for binary operator '+'");
             }
 
         } else {
@@ -2567,7 +2584,7 @@ static void parseadd (ExprDesc* Expr)
                 }
             } else {
                 /* OOPS */
-                Error ("Invalid operands for binary operator `+'");
+                Error ("Invalid operands for binary operator '+'");
                 flags = CF_INT;
             }
 
@@ -2611,7 +2628,7 @@ static void parseadd (ExprDesc* Expr)
                 flags = typeadjust (Expr, &Expr2, 1);
             } else {
                 /* OOPS */
-                Error ("Invalid operands for binary operator `+'");
+                Error ("Invalid operands for binary operator '+'");
                 flags = CF_INT;
             }
 
@@ -2653,7 +2670,7 @@ static void parseadd (ExprDesc* Expr)
                 flags = typeadjust (Expr, &Expr2, 0) & ~CF_CONST;
             } else {
                 /* OOPS */
-                Error ("Invalid operands for binary operator `+'");
+                Error ("Invalid operands for binary operator '+'");
                 flags = CF_INT;
             }
 
@@ -2689,7 +2706,7 @@ static void parsesub (ExprDesc* Expr)
 
     /* lhs cannot be function or pointer to function */
     if (IsTypeFunc (Expr->Type) || IsTypeFuncPtr (Expr->Type)) {
-        Error ("Invalid left operand for binary operator `-'");
+        Error ("Invalid left operand for binary operator '-'");
         /* Make it pointer to char to avoid further errors */
         Expr->Type = type_uchar;
     }
@@ -2712,7 +2729,7 @@ static void parsesub (ExprDesc* Expr)
 
     /* rhs cannot be function or pointer to function */
     if (IsTypeFunc (Expr2.Type) || IsTypeFuncPtr (Expr2.Type)) {
-        Error ("Invalid right operand for binary operator `-'");
+        Error ("Invalid right operand for binary operator '-'");
         /* Make it pointer to char to avoid further errors */
         Expr2.Type = type_uchar;
     }
@@ -2750,7 +2767,7 @@ static void parsesub (ExprDesc* Expr)
                 Expr->IVal -= Expr2.IVal;
             } else {
                 /* OOPS */
-                Error ("Invalid operands for binary operator `-'");
+                Error ("Invalid operands for binary operator '-'");
             }
 
             /* Result is constant, condition codes not set */
@@ -2783,7 +2800,7 @@ static void parsesub (ExprDesc* Expr)
                 flags = typeadjust (Expr, &Expr2, 1);
             } else {
                 /* OOPS */
-                Error ("Invalid operands for binary operator `-'");
+                Error ("Invalid operands for binary operator '-'");
                 flags = CF_INT;
             }
 
@@ -2837,7 +2854,7 @@ static void parsesub (ExprDesc* Expr)
             flags = typeadjust (Expr, &Expr2, 0);
         } else {
             /* OOPS */
-            Error ("Invalid operands for binary operator `-'");
+            Error ("Invalid operands for binary operator '-'");
             flags = CF_INT;
         }
 
@@ -3304,7 +3321,7 @@ static void opeq (const GenDesc* Gen, ExprDesc* Expr, const char* Op)
 
     /* The rhs must be an integer (or a float, but we don't support that yet */
     if (!IsClassInt (Expr2.Type)) {
-        Error ("Invalid right operand for binary operator `%s'", Op);
+        Error ("Invalid right operand for binary operator '%s'", Op);
         /* Continue. Wrong code will be generated, but the compiler won't
         ** break, so this is the best error recovery.
         */
@@ -3421,7 +3438,7 @@ static void addsubeq (const GenDesc* Gen, ExprDesc *Expr, const char* Op)
     */
     hie1 (&Expr2);
     if (!IsClassInt (Expr2.Type)) {
-        Error ("Invalid right operand for binary operator `%s'", Op);
+        Error ("Invalid right operand for binary operator '%s'", Op);
         /* Continue. Wrong code will be generated, but the compiler won't
         ** break, so this is the best error recovery.
         */

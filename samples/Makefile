@@ -51,7 +51,7 @@ ifneq ($(filter disk samples.%,$(MAKECMDGOALS)),)
   # If TARGET_PATH contains spaces then it is presumed to contain escaped spaces. GNU make
   # has very limited support for paths containing spaces. $(wildcard) is the only function
   # that is aware of escaped spaces. However, $(wildcard) never returns paths with escaped
-  # spaces !!! So if it e.g. finds in a path with 2 spaces 4 files then one ends up with a
+  # spaces !!! So if it e.g. finds 4 files in a path with 2 spaces then one ends up with a
   # return value consisting of 12 plain words :-((
   #
   # Fortunately we can work around that behaviour here because we know that the files we
@@ -296,7 +296,7 @@ INSTALL = install
 samplesdir = $(PREFIX)/share/cc65/samples
 
 install:
-	$(if $(PREFIX),,$(error variable `PREFIX' must be set))
+	$(if $(PREFIX),,$(error variable "PREFIX" must be set))
 	$(INSTALL) -d $(DESTDIR)$(samplesdir)
 	$(INSTALL) -d $(DESTDIR)$(samplesdir)/geos
 	$(INSTALL) -d $(DESTDIR)$(samplesdir)/tutorial
